@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -20,20 +20,21 @@ export class ProductsService {
     }
   }
 
-  async findAll() {
+  async findAll(orderByPrice: boolean) {
     try {
-      const FindAllProducts = await this.prismaService.products.findMany();
+      const FindAllProducts = await this.prismaService.products.findMany({
+        orderBy: orderByPrice ? { productPrice: 'asc' } : undefined,
+      });
 
       if (FindAllProducts.length === 0) {
-        return JSON.stringify({
-          msg: `Nenhum produto encontrado.`,
-        });
+        throw new NotFoundException('Nenhum produto encontrado.');
       }
       return FindAllProducts;
     } catch (error) {
       throw new Error(`Erro ao buscar os produtos: ${error.message}`);
     }
   }
+
   async findOne(id: string) {
     const FindUnicProduct = await this.prismaService.products.findUnique({
       where: { id },
@@ -46,6 +47,20 @@ export class ProductsService {
     }
     return FindUnicProduct;
   }
+
+
+  async getProducts(orderByPrice: boolean) {
+    const products = await this.prismaService.products.findMany({
+      orderBy: orderByPrice ? { productPrice: 'asc' } : undefined,
+    });
+
+    if (!products || products.length === 0) {
+      throw new NotFoundException('Nenhum produto encontrado');
+    }
+    return products;
+  }
+  
+
   async update(id: string, updateProductDto: UpdateProductDto) {
     const UpdateProduct = await this.prismaService.products.update({
       where: { id },
