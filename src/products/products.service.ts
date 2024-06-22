@@ -23,7 +23,7 @@ export class ProductsService {
   async findAll(orderByPrice: boolean) {
     try {
       const FindAllProducts = await this.prismaService.products.findMany({
-        orderBy: orderByPrice ? { productPrice: 'asc' } : undefined,
+        orderBy: orderByPrice ? { productPrice: 'asc' }:{ productPrice: 'desc' },
       });
 
       if (FindAllProducts.length === 0) {
